@@ -16,6 +16,7 @@ export default class Sticky extends React.Component {
     stickyStyle: {},
     topOffset: 0,
     bottomOffset: 0,
+    scrollElement: window,
     onStickyStateChange: function () {}
   }
 
@@ -29,8 +30,9 @@ export default class Sticky extends React.Component {
 
   componentDidMount() {
     this.update();
-    this.on(['scroll', 'touchstart', 'touchmove', 'touchend', 'pageshow', 'load'], this.onScroll);
-    this.on(['resize', 'pageshow', 'load'], this.onResize);
+    this.on(this.props.scrollElement, ['scroll', 'touchstart', 'touchmove', 'touchend'], this.onScroll);
+    this.on(window, ['pageshow', 'load'], this.onScroll);
+    this.on(window, ['resize', 'pageshow', 'load'], this.onResize);
   }
 
   componentWillReceiveProps() {
@@ -38,17 +40,23 @@ export default class Sticky extends React.Component {
   }
 
   componentWillUnmount() {
-    this.off(['scroll', 'touchstart', 'touchmove', 'touchend', 'pageshow', 'load'], this.onScroll);
-    this.off(['resize', 'pageshow', 'load'], this.onResize);
+    this.off(this.props.scrollElement, ['scroll', 'touchstart', 'touchmove', 'touchend'], this.onScroll);
+    this.off(window, ['pageshow', 'load'], this.onScroll);
+    this.off(window, ['resize', 'pageshow', 'load'], this.onResize);
   }
 
   getOrigin(pageY) {
     return this.refs.placeholder.getBoundingClientRect().top + pageY;
   }
 
+  getPageY() {
+    const element = this.props.scrollElement;
+    return element.pageYOffset || element.scrollTop;
+  }
+
   update() {
     const height = ReactDOM.findDOMNode(this).getBoundingClientRect().height;
-    const pageY = window.pageYOffset;
+    const pageY = this.getPageY();
     const origin = this.getOrigin(pageY);
     const isSticky = this.isSticky(pageY, origin);
     this.setState({ height, origin, isSticky });
@@ -60,7 +68,7 @@ export default class Sticky extends React.Component {
   }
 
   onScroll = () => {
-    const pageY = window.pageYOffset;
+    const pageY = this.getPageY();
     const origin = this.getOrigin(pageY);
     const isSticky = this.isSticky(pageY, this.state.origin);
     const hasChanged = this.state.isSticky !== isSticky;
@@ -73,19 +81,19 @@ export default class Sticky extends React.Component {
 
   onResize = () => {
     const height = ReactDOM.findDOMNode(this).getBoundingClientRect().height;
-    const origin = this.getOrigin(window.pageYOffset);
+    const origin = this.getOrigin(this.getPageY());
     this.setState({ height, origin });
   }
 
-  on(events, callback) {
+  on(element, events, callback) {
     events.forEach((evt) => {
-      window.addEventListener(evt, callback);
+      element.addEventListener(evt, callback);
     });
   }
 
-  off(events, callback) {
+  off(element, events, callback) {
     events.forEach((evt) => {
-      window.removeEventListener(evt, callback);
+      element.removeEventListener(evt, callback);
     });
   }
 

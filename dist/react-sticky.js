@@ -216,7 +216,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Sticky).call(this, props));
 
 	    _this.onScroll = function () {
-	      var pageY = window.pageYOffset;
+	      var pageY = _this.getPageY();
 	      var origin = _this.getOrigin(pageY);
 	      var isSticky = _this.isSticky(pageY, _this.state.origin);
 	      var hasChanged = _this.state.isSticky !== isSticky;
@@ -229,7 +229,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    _this.onResize = function () {
 	      var height = _reactDom2.default.findDOMNode(_this).getBoundingClientRect().height;
-	      var origin = _this.getOrigin(window.pageYOffset);
+	      var origin = _this.getOrigin(_this.getPageY());
 	      _this.setState({ height: height, origin: origin });
 	    };
 
@@ -243,8 +243,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: 'componentDidMount',
 	    value: function componentDidMount() {
 	      this.update();
-	      this.on(['scroll', 'touchstart', 'touchmove', 'touchend', 'pageshow', 'load'], this.onScroll);
-	      this.on(['resize', 'pageshow', 'load'], this.onResize);
+	      this.on(this.props.scrollElement, ['scroll', 'touchstart', 'touchmove', 'touchend'], this.onScroll);
+	      this.on(window, ['pageshow', 'load'], this.onScroll);
+	      this.on(window, ['resize', 'pageshow', 'load'], this.onResize);
 	    }
 	  }, {
 	    key: 'componentWillReceiveProps',
@@ -254,8 +255,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'componentWillUnmount',
 	    value: function componentWillUnmount() {
-	      this.off(['scroll', 'touchstart', 'touchmove', 'touchend', 'pageshow', 'load'], this.onScroll);
-	      this.off(['resize', 'pageshow', 'load'], this.onResize);
+	      this.off(this.props.scrollElement, ['scroll', 'touchstart', 'touchmove', 'touchend'], this.onScroll);
+	      this.off(window, ['pageshow', 'load'], this.onScroll);
+	      this.off(window, ['resize', 'pageshow', 'load'], this.onResize);
 	    }
 	  }, {
 	    key: 'getOrigin',
@@ -263,10 +265,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return this.refs.placeholder.getBoundingClientRect().top + pageY;
 	    }
 	  }, {
+	    key: 'getPageY',
+	    value: function getPageY() {
+	      var element = this.props.scrollElement;
+	      return element.pageYOffset || element.scrollTop;
+	    }
+	  }, {
 	    key: 'update',
 	    value: function update() {
 	      var height = _reactDom2.default.findDOMNode(this).getBoundingClientRect().height;
-	      var pageY = window.pageYOffset;
+	      var pageY = this.getPageY();
 	      var origin = this.getOrigin(pageY);
 	      var isSticky = this.isSticky(pageY, origin);
 	      this.setState({ height: height, origin: origin, isSticky: isSticky });
@@ -278,16 +286,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  }, {
 	    key: 'on',
-	    value: function on(events, callback) {
+	    value: function on(element, events, callback) {
 	      events.forEach(function (evt) {
-	        window.addEventListener(evt, callback);
+	        element.addEventListener(evt, callback);
 	      });
 	    }
 	  }, {
 	    key: 'off',
-	    value: function off(events, callback) {
+	    value: function off(element, events, callback) {
 	      events.forEach(function (evt) {
-	        window.removeEventListener(evt, callback);
+	        element.removeEventListener(evt, callback);
 	      });
 	    }
 
@@ -349,6 +357,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  stickyStyle: {},
 	  topOffset: 0,
 	  bottomOffset: 0,
+	  scrollElement: window,
 	  onStickyStateChange: function onStickyStateChange() {}
 	};
 	exports.default = Sticky;

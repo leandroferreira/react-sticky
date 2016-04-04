@@ -157,6 +157,8 @@ describe('Sticky component', function() {
     });
 
     it ('should report its height to its container', () => {
+      this.sticky = mount(<Sticky scrollElement={window}>Test</Sticky>, this.container);
+
       let contextOffset = 0;
       this.sticky.context.container = { updateOffset: (offset) => { contextOffset = offset; } }
       this.sticky.setState({ origin: 100, height: 100 });
